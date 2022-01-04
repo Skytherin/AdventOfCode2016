@@ -1,36 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 
 namespace AdventOfCode2016.Utils
 {
     public static class SearchAlgorithm
     {
         public static SearchData<TNode> BreadthFirstSearch<TNode>(TNode initial, TNode needle,
-            Func<TNode, IEnumerable<TNode>> neighbors, Func<TNode, bool> valid)
+            Func<TNode, IEnumerable<TNode>> neighbors)
         {
-            return RunInternal(initial, needle, new BreadthFirstContainer<SearchData<TNode>>(), neighbors, valid);
+            return RunInternal(initial, needle, new BreadthFirstContainer<SearchData<TNode>>(), neighbors);
         }
 
         public static SearchData<TNode> AStarSearch<TNode>(TNode initial, TNode needle,
-            Func<TNode, IEnumerable<(int Cost, TNode Node)>> neighbors, Func<TNode, bool> valid,
+            Func<TNode, IEnumerable<(int Cost, TNode Node)>> neighbors,
             Func<TNode, int> estimationFunction)
         {
-            var open = new PriorityQueue<SearchData<TNode>>(node => node.Cost + estimationFunction(node.Value));
+            var open = new PriorityQueue<SearchData<TNode>>(node => node.Cost + estimationFunction(node.Node));
             open.Enqueue(new(initial, 0));
-            var closed = new Dictionary<TNode, int> { {initial, 0}};
+            var closed = new Dictionary<TNode, int>();
             while (open.TryDequeue(out var current))
             {
-                if (closed.TryGetValue(current.Value, out var other) && other <= current.Cost) continue;
+                if (closed.TryGetValue(current.Node, out var other) && other <= current.Cost) continue;
+                closed[current.Node] = current.Cost;
 
-                foreach (var neighbor in neighbors(current.Value)
-                             .Where(it => valid(it.Node)))
+                foreach (var neighbor in neighbors(current.Node))
                 {
-                    if (closed.TryGetValue(current.Value, out var other2) && other2 <= current.Cost) continue;
-                    if (neighbor.Equals(needle)) return new(neighbor.Node, current.Cost + neighbor.Cost);
-                    closed[neighbor.Node] = current.Cost + neighbor.Cost;
-                    open.Enqueue(new(neighbor.Node, current.Cost + neighbor.Cost));
+                    var totalCost = neighbor.Cost + current.Cost;
+                    if (neighbor.Node.Equals(needle)) return new(neighbor.Node, totalCost);
+                    open.Enqueue(new(neighbor.Node, totalCost));
                 }
             }
 
@@ -38,14 +36,13 @@ namespace AdventOfCode2016.Utils
         }
 
         private static SearchData<TNode> RunInternal<TNode>(TNode initial, TNode needle,
-            IContainer<SearchData<TNode>> open, Func<TNode, IEnumerable<TNode>> neighbors, Func<TNode, bool> valid)
+            IContainer<SearchData<TNode>> open, Func<TNode, IEnumerable<TNode>> neighbors)
         {
             open.Add(new(initial, 0));
             var closed = new HashSet<TNode> { initial };
             while (open.TryRemove(out var current))
             {
-                foreach (var neighbor in neighbors(current.Value)
-                             .Where(valid)
+                foreach (var neighbor in neighbors(current.Node)
                              .Where(neighbor => !closed.Contains(neighbor)))
                 {
                     if (neighbor.Equals(needle)) return new (neighbor, current.Cost + 1);
@@ -57,7 +54,7 @@ namespace AdventOfCode2016.Utils
             throw new ApplicationException("Search result not found.");
         }
 
-        public record SearchData<T>(T Value, int Cost);
+        public record SearchData<T>(T Node, int Cost);
 
         private interface IContainer<T>
         {
@@ -68,6 +65,26 @@ namespace AdventOfCode2016.Utils
         private class BreadthFirstContainer<T> : IContainer<T>
         {
             private readonly Queue<T> Actual = new();
+            public bool TryRemove(out T value)
+            {
+                return Actual.TryDequeue(out value);
+            }
+
+            public void Add(T value)
+            {
+                Actual.Enqueue(value);
+            }
+        }
+
+        private class PriorityContainer<T> : IContainer<T>
+        {
+            private readonly PriorityQueue<T> Actual;
+
+            public PriorityContainer(Func<T, long> priorityFunction)
+            {
+                Actual = new PriorityQueue<T>(priorityFunction);
+            }
+
             public bool TryRemove(out T value)
             {
                 return Actual.TryDequeue(out value);

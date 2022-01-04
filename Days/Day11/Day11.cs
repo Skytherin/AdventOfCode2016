@@ -12,20 +12,35 @@ namespace AdventOfCode2016.Days.Day11
     {
         public void Run()
         {
+            Console.WriteLine();
             Do1(Example).Should().Be(11);
+            Console.WriteLine("**");
             Do1(Input).Should().Be(47);
-            Console.WriteLine("\n***");
-            Do1(Input2).Should().Be(0);
+            Console.WriteLine("***");
+            Do1(Input2).Should().Be(71);
         }
 
         private int Do1(Day11Data initial)
         {
-            return SearchAlgorithm.BreadthFirstSearch(initial, Goal(initial), Neighbors, Valid).Cost;
+            return SearchAlgorithm.AStarSearch(initial, Goal(initial), Neighbors, PriorityFunction).Cost;
         }
 
-        private bool Valid(Day11Data input)
+        private int PriorityFunction(Day11Data input)
         {
-            return true;
+            var cost = 0;
+            foreach (var i in new[]{2,1,0})
+            {
+                cost += Moves(input.Floors[i].Count) * (3 - i);
+            }
+
+            return cost;
+        }
+
+        private int Moves(int numberOfItems)
+        {
+            if (numberOfItems == 0) return 0;
+            if (numberOfItems <= 2) return 1;
+            return numberOfItems * 2 - 3;
         }
 
         private static bool FloorIsValid(IReadOnlySet<Component> floor)
@@ -37,24 +52,36 @@ namespace AdventOfCode2016.Days.Day11
             return chips.All(c => generators.Any(g => g.Element == c.Element));
         }
 
-        private IEnumerable<Day11Data> Neighbors(Day11Data input)
+        private IEnumerable<(int Cost, Day11Data Node)> Neighbors(Day11Data input)
         {
-            var itemsOnFloor = input.Floors[input.Elevator];
+            var floors = new List<int>();
+            if (input.Elevator < 3) floors.Add(input.Elevator + 1);
+            for (var i = 0; i < input.Elevator; i++)
+            {
+                if (input.Floors[i].Any())
+                {
+                    floors.Add(input.Elevator - 1);
+                    break;
+                }
+            }
 
+            if (!floors.Any()) yield break;
+
+            var itemsOnFloor = input.Floors[input.Elevator];
             foreach (var choice in itemsOnFloor
-                         .Select(item => new List<Component>{item})
+                         .Choose(1)
                          .AppendAll(itemsOnFloor.Choose(2))
                      )
             {
-                foreach (var newElevator in new []{input.Elevator-1, input.Elevator+1}.Where(floor => floor is >= 0 and <= 3))
+                var thisFloor = input.Floors[input.Elevator].Except(choice).ToHashSet();
+                if (!FloorIsValid(thisFloor)) continue;
+                foreach (var newElevator in floors)
                 {
-                    var floors = input.Floors.ToList();
-                    floors[input.Elevator] = floors[input.Elevator].Except(choice).ToHashSet();
-                    floors[newElevator] = floors[newElevator].Union(choice).ToHashSet();
-                    if (FloorIsValid(floors[input.Elevator]) && FloorIsValid(floors[newElevator]))
-                    {
-                        yield return new(newElevator, floors);
-                    }
+                    var newFloors = input.Floors.ToList();
+                    newFloors[input.Elevator] = thisFloor;
+                    newFloors[newElevator] = newFloors[newElevator].AppendAll(choice).ToHashSet();
+                    if (!FloorIsValid(newFloors[newElevator])) continue;
+                    yield return (1, new(newElevator, newFloors));
                 }
             }
         }
@@ -109,11 +136,15 @@ namespace AdventOfCode2016.Days.Day11
         public readonly int Elevator;
         public readonly IReadOnlyList<IReadOnlySet<Component>> Floors;
         private readonly int MyHashCode;
+        private readonly string ReducedState;
 
         public Day11Data(int elevator, IEnumerable<IEnumerable<Component>> floors)
         {
             Elevator = elevator;
             Floors = floors.Select(it => it.ToHashSet()).ToList();
+
+            ReducedState = floors.Select(floor => $"{floor.Count(it => it.)}{}").Join(";");
+
             MyHashCode = HashCode.Combine(Elevator, Floors.Aggregate(0, (current, value) =>
                 HashCode.Combine(current, value.OrderBy(it => it.Element).ThenBy(it => it.Type)
                     .Aggregate(0, HashCode.Combine))
@@ -125,7 +156,8 @@ namespace AdventOfCode2016.Days.Day11
             if (obj is not Day11Data other) return false;
             if (other.Elevator != Elevator) return false;
             if (Floors.Count != other.Floors.Count) return false;
-            return Floors.Zip(other.Floors).All(zipped => zipped.First.Union(zipped.Second).Count() == zipped.First.Count);
+            return Floors.Zip(other.Floors).All(zipped => zipped.First.Count == zipped.Second.Count && 
+                                                          zipped.First.Union(zipped.Second).Count() == zipped.First.Count);
         }
 
         public override int GetHashCode() => MyHashCode;
