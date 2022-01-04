@@ -159,6 +159,34 @@ namespace AdventOfCode2016.Utils
             input.Split("\n")
                 .Select(it => it.Trim()).ToList();
 
+        public static IEnumerable<List<T>> Choose<T>(this IEnumerable<T> self, int k)
+        {
+            if (k <= 0) yield break;
+            var l = self.ToList();
+            if (l.Count == 0 || k > l.Count) yield break;
+            if (k == l.Count)
+            {
+                yield return l;
+                yield break;
+            }
+
+            if (k == 1)
+            {
+                foreach (var item in l) yield return new List<T> { item };
+                yield break;
+            }
+
+            var first = l[0];
+            foreach (var item in l.Skip(1).Choose(k - 1))
+            {
+                var result = new List<T> { first };
+                result.AddRange(item);
+                yield return result;
+            }
+
+            foreach (var item in l.Skip(1).Choose(k)) yield return item;
+        }
+
         public static bool ContainsAll<T>(this IEnumerable<T> first, IEnumerable<T> other)
         {
             return !other.Except(first).Any();
