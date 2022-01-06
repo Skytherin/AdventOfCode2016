@@ -13,13 +13,29 @@ namespace AdventOfCode2016.Days.Day15
         [TestCase(Input.Input, 400589L)]
         public override long Part1(List<Day15Data> input)
         {
-            var sentinel = input.Select(it => (long)it.Positions).Product();
-            for (var t = 0L; t < sentinel; t++)
+            input.Reverse();
+
+            foreach (var startTime in StartTimes(input.First()))
             {
-                if (input.All(item => (item.StartingPosition + item.DiskNumber + t) % item.Positions == 0))
+                var allGood = true;
+                foreach (var item in input.Skip(1))
                 {
-                    return t;
+                    var startTime2 = StartTimes(item).First();
+                    if (startTime2 > startTime)
+                    {
+                        allGood = false;
+                        break;
+                    }
+
+                    if (startTime2 == startTime) continue;
+
+                    if ((startTime - startTime2) % item.Positions == 0) continue;
+
+                    allGood = false;
+                    break;
                 }
+
+                if (allGood) return startTime;
             }
 
             throw new ApplicationException();
@@ -34,6 +50,18 @@ namespace AdventOfCode2016.Days.Day15
                 Positions = 11,
                 StartingPosition = 0
             }).ToList());
+        }
+
+        private IEnumerable<long> StartTimes(Day15Data item)
+        {
+            var first = item.Positions - (item.StartingPosition + item.DiskNumber) % item.Positions;
+            if (first == item.Positions) first = 0;
+            yield return first;
+            while (true)
+            {
+                first += item.Positions;
+                yield return first;
+            }
         }
     }
 
