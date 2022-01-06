@@ -220,6 +220,7 @@ namespace AdventOfCode2016.Utils
 
             foreach (var property in groupToSetAction.Keys)
             {
+                if (!match.Groups[property].Success) continue;
                 var g = match.Groups[property].Value;
                 groupToSetAction[property](g);
             }

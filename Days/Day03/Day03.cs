@@ -10,16 +10,15 @@ namespace AdventOfCode2016.Days.Day03
     [UsedImplicitly]
     public class Day03 : AdventOfCode<List<Day03Triangle>>
     {
-        public override string Example => "0 0 0";
         public override List<Day03Triangle> Parse(string input) => StructuredRx.ParseLines<Day03Triangle>(input);
 
-        [TestCase(Input.File, 862)]
+        [TestCase(Input.Input, 862)]
         public override long Part1(List<Day03Triangle> input)
         {
             return input.Count(i => i.IsValid);
         }
 
-        [TestCase(Input.File, 1577)]
+        [TestCase(Input.Input, 1577)]
         public override long Part2(List<Day03Triangle> input)
         {
             var lines = File.ReadAllText($"Days/Day03/Input.txt")

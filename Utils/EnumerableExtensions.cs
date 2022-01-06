@@ -6,6 +6,11 @@ namespace AdventOfCode2016.Utils
 {
     public static class EnumerableExtensions
     {
+        public static long Product(this IEnumerable<long> self)
+        {
+            return self.Aggregate((current, value) => current * value);
+        }
+
         public static IEnumerable<T> RotateRight<T>(this IEnumerable<T> self, int magnitude)
         {
             var list = self.ToList();

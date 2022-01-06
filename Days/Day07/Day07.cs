@@ -14,7 +14,7 @@ namespace AdventOfCode2016.Days.Day07
             return input.Lines();
         }
 
-        [TestCase(Input.File, 105)]
+        [TestCase(Input.Input, 105)]
         public override long Part1(List<string> input)
         {
             SupportsTls("abba[mnop]qrst").Should().BeTrue();
@@ -25,7 +25,7 @@ namespace AdventOfCode2016.Days.Day07
             return input.Count(SupportsTls);
         }
 
-        [TestCase(Input.File, 258)]
+        [TestCase(Input.Input, 258)]
         public override long Part2(List<string> input)
         {
             SupportsSsl("aba[bab]xyz").Should().BeTrue();

@@ -13,12 +13,12 @@ namespace AdventOfCode2016.Utils
         }
 
         public static SearchData<TNode> AStarSearch<TNode>(TNode initial, TNode needle,
-            Func<TNode, IEnumerable<(int Cost, TNode Node)>> neighbors,
-            Func<TNode, int> estimationFunction)
+            Func<TNode, IEnumerable<(long Cost, TNode Node)>> neighbors,
+            Func<TNode, long> estimationFunction)
         {
             var open = new PriorityQueue<SearchData<TNode>>(node => node.Cost + estimationFunction(node.Node));
             open.Enqueue(new(initial, 0));
-            var closed = new Dictionary<TNode, int>();
+            var closed = new Dictionary<TNode, long>();
             while (open.TryDequeue(out var current))
             {
                 if (closed.TryGetValue(current.Node, out var other) && other <= current.Cost) continue;
@@ -54,7 +54,7 @@ namespace AdventOfCode2016.Utils
             throw new ApplicationException("Search result not found.");
         }
 
-        public record SearchData<T>(T Node, int Cost);
+        public record SearchData<T>(T Node, long Cost);
 
         private interface IContainer<T>
         {

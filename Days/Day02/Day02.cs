@@ -12,13 +12,8 @@ namespace AdventOfCode2016.Days.Day02
     {
         public override List<string> Parse(string input) => input.Lines();
 
-        public override string Example => @"ULL
-RRDDD
-LURDL
-UUUUD";
-
         [TestCase(Input.Example, 1985)]
-        [TestCase(Input.File, 24862)]
+        [TestCase(Input.Input, 24862)]
         public override long Part1(List<string> input)
         {
             Console.WriteLine();
@@ -39,7 +34,7 @@ UUUUD";
             return code.Aggregate((accum, value) => accum * 10 + value);
         }
 
-        [TestCase(Input.File, 0)]
+        [TestCase(Input.Input, 0)]
         public override long Part2(List<string> input)
         {
             var code = new List<char>();

@@ -9,7 +9,7 @@ namespace AdventOfCode2016.Days.Day09
     {
         public override string Parse(string input) => input;
 
-        [TestCase(Input.File, 107035L)]
+        [TestCase(Input.Input, 107035L)]
         public override long Part1(string input)
         {
             Do1("ADVENT").Should().Be(6);
@@ -21,7 +21,7 @@ namespace AdventOfCode2016.Days.Day09
             return Do1(input);
         }
 
-        [TestCase(Input.File, 11451628995L)]
+        [TestCase(Input.Input, 11451628995L)]
         public override long Part2(string input)
         {
             Do2("(3x3)XYZ").Should().Be(9);

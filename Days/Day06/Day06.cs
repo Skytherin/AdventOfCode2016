@@ -9,30 +9,13 @@ namespace AdventOfCode2016.Days.Day06
     [UsedImplicitly]
     public class Day06 : AdventOfCode<List<string>>
     {
-        public override string Example => @"eedadn
-drvtee
-eandsr
-raavrd
-atevrs
-tsrnev
-sdttsa
-rasrtv
-nssdts
-ntnada
-svetve
-tesnvt
-vntsnd
-vrdear
-dvrsen
-enarar";
-
         public override List<string> Parse(string input)
         {
             return input.Lines();
         }
 
         [TestCase(Input.Example, 0)]
-        [TestCase(Input.File, 0)]
+        [TestCase(Input.Input, 0)]
         public override long Part1(List<string> input)
         {
             var result = input.Flip().Select(column => column.GroupBy(it => it).MaxBy(it => it.Count()).Key).Join();
@@ -42,7 +25,7 @@ enarar";
         }
 
         [TestCase(Input.Example, 0)]
-        [TestCase(Input.File, 0)]
+        [TestCase(Input.Input, 0)]
         public override long Part2(List<string> input)
         {
             var result = input.Flip().Select(column => column.GroupBy(it => it).MinBy(it => it.Count()).Key).Join();

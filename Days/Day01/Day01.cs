@@ -12,7 +12,7 @@ namespace AdventOfCode2016.Days.Day01
     {
         public override List<string> Parse(string input) => input.Split(",").Select(it => it.Trim()).ToList();
 
-        [TestCase(Input.File, 242)]
+        [TestCase(Input.Input, 242)]
         public override long Part1(List<string> input)
         {
             Walk(Parse("R2,L3")).Last().ManhattanDistance().Should().Be(5);
@@ -21,7 +21,7 @@ namespace AdventOfCode2016.Days.Day01
             return Walk(input).Last().ManhattanDistance();
         }
 
-        [TestCase(Input.File, 150)]
+        [TestCase(Input.Input, 150)]
         public override long Part2(List<string> input)
         {
             var visited = new HashSet<Position> { Position.Zero };

@@ -24,6 +24,6 @@ namespace AdventOfCode2016.Utils
     public enum Input
     {
         Example,
-        File
+        Input
     }
 }

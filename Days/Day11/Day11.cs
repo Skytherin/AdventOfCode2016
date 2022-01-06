@@ -20,14 +20,14 @@ namespace AdventOfCode2016.Days.Day11
             Do1(Input2).Should().Be(71);
         }
 
-        private int Do1(Day11Data initial)
+        private long Do1(Day11Data initial)
         {
             return SearchAlgorithm.AStarSearch(initial, Goal(initial), Neighbors, PriorityFunction).Cost;
         }
 
-        private int PriorityFunction(Day11Data input)
+        private long PriorityFunction(Day11Data input)
         {
-            var cost = 0;
+            var cost = 0L;
             foreach (var i in new[]{2,1,0})
             {
                 cost += Moves(input.Floors[i].Count) * (3 - i);
@@ -52,7 +52,7 @@ namespace AdventOfCode2016.Days.Day11
             return chips.All(c => generators.Any(g => g.Element == c.Element));
         }
 
-        private IEnumerable<(int Cost, Day11Data Node)> Neighbors(Day11Data input)
+        private IEnumerable<(long Cost, Day11Data Node)> Neighbors(Day11Data input)
         {
             var floors = new List<int>();
             if (input.Elevator < 3) floors.Add(input.Elevator + 1);
@@ -135,7 +135,6 @@ namespace AdventOfCode2016.Days.Day11
     {
         public readonly int Elevator;
         public readonly IReadOnlyList<IReadOnlySet<Component>> Floors;
-        private readonly int MyHashCode;
         private readonly string ReducedState;
 
         public Day11Data(int elevator, IEnumerable<IEnumerable<Component>> floors)
@@ -143,24 +142,17 @@ namespace AdventOfCode2016.Days.Day11
             Elevator = elevator;
             Floors = floors.Select(it => it.ToHashSet()).ToList();
 
-            ReducedState = floors.Select(floor => $"{floor.Count(it => it.)}{}").Join(";");
-
-            MyHashCode = HashCode.Combine(Elevator, Floors.Aggregate(0, (current, value) =>
-                HashCode.Combine(current, value.OrderBy(it => it.Element).ThenBy(it => it.Type)
-                    .Aggregate(0, HashCode.Combine))
-            ));
+            ReducedState = $"{Elevator}:" + Floors.Select(floor => $"{floor.Count(it => it.Type == ComponentType.Microchip)},{floor.Count(it => it.Type == ComponentType.Generator)}")
+                .Join(";");
         }
 
         public override bool Equals(object? obj)
         {
             if (obj is not Day11Data other) return false;
-            if (other.Elevator != Elevator) return false;
-            if (Floors.Count != other.Floors.Count) return false;
-            return Floors.Zip(other.Floors).All(zipped => zipped.First.Count == zipped.Second.Count && 
-                                                          zipped.First.Union(zipped.Second).Count() == zipped.First.Count);
+            return other.ReducedState == ReducedState;
         }
 
-        public override int GetHashCode() => MyHashCode;
+        public override int GetHashCode() => ReducedState.GetHashCode();
     }
 
     public record Component(string Element, ComponentType Type);

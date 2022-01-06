@@ -11,10 +11,9 @@ namespace AdventOfCode2016.Days.Day04
     [UsedImplicitly]
     public class Day04 : AdventOfCode<List<RoomData>>
     {
-        public override string Example => "aaaaa-bbb-z-y-x-123[abxyz]";
         public override List<RoomData> Parse(string input) => StructuredRx.ParseLines<RoomData>(input);
 
-        [TestCase(Input.File, 185371)]
+        [TestCase(Input.Input, 185371)]
         public override long Part1(List<RoomData> input)
         {
             IsRealRoom(StructuredRx.Parse<RoomData>("aaaaa-bbb-z-y-x-123[abxyz]")).Should().BeTrue();
@@ -24,7 +23,7 @@ namespace AdventOfCode2016.Days.Day04
             return input.Where(IsRealRoom).Sum(it => it.SectorId);
         }
 
-        [TestCase(Input.File, 984)]
+        [TestCase(Input.Input, 984)]
         public override long Part2(List<RoomData> input)
         {
             Rotate('a', 1).Should().Be('b');

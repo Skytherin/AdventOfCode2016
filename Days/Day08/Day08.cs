@@ -18,7 +18,7 @@ namespace AdventOfCode2016.Days.Day08
                 StructuredRx.ParseOrDefault<RotateColumnInstruction>(it)).ToList();
         }
 
-        [TestCase(Input.File, 116)]
+        [TestCase(Input.Input, 116)]
         public override long Part1(List<IDay08Instruction> input)
         {
             var grid = Enumerable.Range(0, 6).Select(_ => Enumerable.Range(0, 50).Select(_ => false).ToReadOnlyList())

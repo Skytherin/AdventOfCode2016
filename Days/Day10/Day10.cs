@@ -36,7 +36,7 @@ namespace AdventOfCode2016.Days.Day10
                 }).ToList();
         }
 
-        [TestCase(Input.File, 118L)]
+        [TestCase(Input.Input, 118L)]
         public override long Part1(List<IDay10Instruction> input)
         {
             foreach (var (botNetwork, _) in Run(input))
@@ -51,7 +51,7 @@ namespace AdventOfCode2016.Days.Day10
             throw new ApplicationException();
         }
 
-        [TestCase(Input.File, 143153L)]
+        [TestCase(Input.Input, 143153L)]
         public override long Part2(List<IDay10Instruction> input)
         {
             var (_, outputNetwork) = Run(input).Last();

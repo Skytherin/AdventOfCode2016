@@ -30,9 +30,19 @@ namespace AdventOfCode2016.Utils
             return new Position(p.Y + vector.dY, p.X + vector.dX);
         }
 
+        public static Position operator -(Position p, Position vector)
+        {
+            return new Position(p.Y - vector.Y, p.X - vector.X);
+        }
+
         public long ManhattanDistance()
         {
             return Math.Abs(X) + Math.Abs(Y);
+        }
+
+        public long ManhattanDistance(Position other)
+        {
+            return (other - this).ManhattanDistance();
         }
 
         public IEnumerable<Position> Orthogonal()
