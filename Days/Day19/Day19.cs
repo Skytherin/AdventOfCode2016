@@ -24,13 +24,13 @@ namespace AdventOfCode2016.Days.Day19
             var current = elves.First!;
             for (var i = 0; i < elves.Count / 2; i++)
             {
-                current = current!.Next;
+                current = current!.Next!;
             }
 
             while (elves.Count > 1)
             {
-                var next1 = current!.Next ?? elves.First!;
-                var next2 = next1.Next ?? elves.First;
+                var next1 = current.Roll();
+                var next2 = next1.Roll();
                 elves.Remove(current);
                 current = elves.Count % 2 == 1 ? next1 : next2;
             }
@@ -40,25 +40,15 @@ namespace AdventOfCode2016.Days.Day19
 
         private int Do1(int elfCount)
         {
-            var elves = new List<int>(Enumerable.Range(1, elfCount));
+            var elves = new LinkedList<int>(Enumerable.Range(1, elfCount));
+
+            var current = elves.First!.Next!;
 
             while (elves.Count > 1)
             {
-                var removed = new HashSet<int>();
-                for (var i = 0; i < elves.Count; i++)
-                {
-                    var elf = elves[i];
-                    if (i == elves.Count - 1 && !removed.Contains(elf))
-                    {
-                        removed.Add(elves[0]);
-                    }
-                    else if (!removed.Contains(elf))
-                    {
-                        removed.Add(elves[i + 1]);
-                    }
-                }
-
-                elves = elves.Except(removed).ToList();
+                var next2 = current.Roll().Roll();
+                elves.Remove(current);
+                current = next2;
             }
 
             return elves.Single();

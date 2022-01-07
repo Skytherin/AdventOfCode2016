@@ -249,5 +249,10 @@ namespace AdventOfCode2016.Utils
             }
             throw new ApplicationException("Attempt to shift empty list.");
         }
+
+        public static LinkedListNode<T> Roll<T>(this LinkedListNode<T> self)
+        {
+            return self.Next ?? self.List!.First!;
+        }
     }
 }
