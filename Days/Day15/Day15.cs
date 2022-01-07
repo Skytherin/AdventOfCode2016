@@ -27,8 +27,6 @@ namespace AdventOfCode2016.Days.Day15
                         break;
                     }
 
-                    if (startTime2 == startTime) continue;
-
                     if ((startTime - startTime2) % item.Positions == 0) continue;
 
                     allGood = false;

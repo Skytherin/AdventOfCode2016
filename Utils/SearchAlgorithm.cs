@@ -16,6 +16,13 @@ namespace AdventOfCode2016.Utils
             Func<TNode, IEnumerable<(long Cost, TNode Node)>> neighbors,
             Func<TNode, long> estimationFunction)
         {
+            return AStarSearchAll(initial, it => it.Equals(needle), neighbors, estimationFunction).First();
+        }
+
+        public static IEnumerable<SearchData<TNode>> AStarSearchAll<TNode>(TNode initial, Func<TNode, bool> needle,
+            Func<TNode, IEnumerable<(long Cost, TNode Node)>> neighbors,
+            Func<TNode, long> estimationFunction)
+        {
             var open = new PriorityQueue<SearchData<TNode>>(node => node.Cost + estimationFunction(node.Node));
             open.Enqueue(new(initial, 0));
             var closed = new Dictionary<TNode, long>();
@@ -27,12 +34,14 @@ namespace AdventOfCode2016.Utils
                 foreach (var neighbor in neighbors(current.Node))
                 {
                     var totalCost = neighbor.Cost + current.Cost;
-                    if (neighbor.Node.Equals(needle)) return new(neighbor.Node, totalCost);
+                    if (needle(neighbor.Node))
+                    {
+                        yield return new(neighbor.Node, totalCost);
+                        continue;
+                    }
                     open.Enqueue(new(neighbor.Node, totalCost));
                 }
             }
-
-            throw new ApplicationException("Search result not found.");
         }
 
         private static SearchData<TNode> RunInternal<TNode>(TNode initial, TNode needle,
