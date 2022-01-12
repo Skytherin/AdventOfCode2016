@@ -1,0 +1,30 @@
+cpy a d
+cpy 4 c
+cpy 643 b
+    inc d
+        dec b
+    jnz b -2
+    dec c
+jnz c -5
+cpy d a
+    jnz 0 0
+        cpy a b
+        cpy 0 a
+        cpy 2 c
+            jnz b 2      // :JB2
+                jnz 1 6  // :J16
+                dec b    // JB2:
+                dec c
+            jnz c -4
+            inc a
+        jnz 1 -7
+        cpy 2 b             // J16:
+        jnz c 2            // :JC2
+            jnz 1 4         // :J14
+            dec b           // JC2:
+            dec c
+        jnz 1 -4
+        jnz 0 0             // J14
+        out b
+    jnz a -19
+jnz 1 -21

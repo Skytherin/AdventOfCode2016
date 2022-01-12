@@ -1,15 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
 
 namespace AdventOfCode2016.Utils
 {
     public static class SearchAlgorithm
     {
-        public static SearchData<TNode> BreadthFirstSearch<TNode>(TNode initial, TNode needle,
+        public static SearchData<TNode> BreadthFirstSearch<TNode>(TNode initial, Func<TNode, bool> needle,
             Func<TNode, IEnumerable<TNode>> neighbors)
         {
             return RunInternal(initial, needle, new BreadthFirstContainer<SearchData<TNode>>(), neighbors);
+        }
+
+        public static SearchData<TNode> PrioritySearch<TNode>(TNode initial, Func<TNode, bool> needle,
+            Func<TNode, IEnumerable<TNode>> neighbors, Func<TNode, long> comparer)
+        {
+            return RunInternalNoCache(initial, needle, new PriorityContainer<SearchData<TNode>>(it => comparer(it.Node)), 
+                neighbors);
         }
 
         public static SearchData<TNode> AStarSearch<TNode>(TNode initial, TNode needle,
@@ -19,21 +27,28 @@ namespace AdventOfCode2016.Utils
             return AStarSearchAll(initial, it => it.Equals(needle), neighbors, estimationFunction).First();
         }
 
+        public static SearchData<TNode> AStarSearch<TNode>(TNode initial, Func<TNode, bool> needle,
+            Func<TNode, IEnumerable<(long Cost, TNode Node)>> neighbors,
+            Func<TNode, long> estimationFunction)
+        {
+            return AStarSearchAll(initial, needle, neighbors, estimationFunction).First();
+        }
+
         public static IEnumerable<SearchData<TNode>> AStarSearchAll<TNode>(TNode initial, Func<TNode, bool> needle,
             Func<TNode, IEnumerable<(long Cost, TNode Node)>> neighbors,
             Func<TNode, long> estimationFunction)
         {
-            var open = new PriorityQueue<SearchData<TNode>>(node => node.Cost + estimationFunction(node.Node));
+            var open = new PriorityQueue<SearchData<TNode>>(node => node.Steps + estimationFunction(node.Node));
             open.Enqueue(new(initial, 0));
             var closed = new Dictionary<TNode, long>();
             while (open.TryDequeue(out var current))
             {
-                if (closed.TryGetValue(current.Node, out var other) && other <= current.Cost) continue;
-                closed[current.Node] = current.Cost;
+                if (closed.TryGetValue(current.Node, out var other) && other <= current.Steps) continue;
+                closed[current.Node] = current.Steps;
 
                 foreach (var neighbor in neighbors(current.Node))
                 {
-                    var totalCost = neighbor.Cost + current.Cost;
+                    var totalCost = neighbor.Cost + current.Steps;
                     if (needle(neighbor.Node))
                     {
                         yield return new(neighbor.Node, totalCost);
@@ -44,7 +59,7 @@ namespace AdventOfCode2016.Utils
             }
         }
 
-        private static SearchData<TNode> RunInternal<TNode>(TNode initial, TNode needle,
+        private static SearchData<TNode> RunInternal<TNode>(TNode initial, Func<TNode, bool> needle,
             IContainer<SearchData<TNode>> open, Func<TNode, IEnumerable<TNode>> neighbors)
         {
             open.Add(new(initial, 0));
@@ -54,16 +69,32 @@ namespace AdventOfCode2016.Utils
                 foreach (var neighbor in neighbors(current.Node)
                              .Where(neighbor => !closed.Contains(neighbor)))
                 {
-                    if (neighbor.Equals(needle)) return new (neighbor, current.Cost + 1);
+                    if (needle(neighbor)) return new (neighbor, current.Steps + 1);
                     closed.Add(neighbor);
-                    open.Add(new(neighbor, current.Cost + 1));
+                    open.Add(new(neighbor, current.Steps + 1));
                 }
             }
 
             throw new ApplicationException("Search result not found.");
         }
 
-        public record SearchData<T>(T Node, long Cost);
+        private static SearchData<TNode> RunInternalNoCache<TNode>(TNode initial, Func<TNode, bool> needle,
+            IContainer<SearchData<TNode>> open, Func<TNode, IEnumerable<TNode>> neighbors)
+        {
+            open.Add(new(initial, 0));
+            while (open.TryRemove(out var current))
+            {
+                if (needle(current.Node)) return current;
+                foreach (var neighbor in neighbors(current.Node))
+                {
+                    open.Add(new(neighbor, current.Steps + 1));
+                }
+            }
+
+            throw new ApplicationException("Search result not found.");
+        }
+
+        public record SearchData<T>(T Node, long Steps);
 
         private interface IContainer<T>
         {

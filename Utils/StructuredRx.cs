@@ -29,6 +29,16 @@ namespace AdventOfCode2016.Utils
         {
             var propertyType = property.PropertyType;
             var groupName = $"{groupPrefix}{property.Name}";
+            if (propertyType == typeof(char))
+            {
+                actions[groupName] = g => property.SetValue(parent, g.First());
+                return $"(?<{groupName}>\\S)";
+            }
+            if (propertyType == typeof(char?))
+            {
+                actions[groupName] = g => property.SetValue(parent, g.First());
+                return $"(?<{groupName}>\\S)?";
+            }
             if (propertyType == typeof(int))
             {
                 actions[groupName] = g => property.SetValue(parent, Convert.ToInt32(g));
@@ -49,92 +59,94 @@ namespace AdventOfCode2016.Utils
                 actions[groupName] = g => property.SetValue(parent, string.IsNullOrWhiteSpace(g) ? null : Convert.ToInt64(g));
                 return $"(?<{groupName}>-?\\d+)";
             }
-            if (propertyType == typeof(string))
+            else
             {
-                actions[groupName] = g => property.SetValue(parent, string.IsNullOrWhiteSpace(g) ? null : g);
-                return $"(?<{groupName}>[a-zA-Z]+)";
-            }
-
-            if (propertyType == typeof(Dictionary<string, int>))
-            {
-                var keyrx = @"([a-zA-Z]+)";
-                var valuerx = @"(-?\d+)";
-                actions[groupName] = g =>
+                if (propertyType == typeof(string))
                 {
-                    var result = new Dictionary<string, int>();
-                    var group = $@"(?<key>{keyrx}):\s*(?<value>{valuerx})\s*";
-                    var match = Regex.Match(g, $@"^{group}");
-                    while (match.Success)
+                    actions[groupName] = g => property.SetValue(parent, string.IsNullOrWhiteSpace(g) ? null : g);
+                    return $"(?<{groupName}>[a-zA-Z]+)";
+                }
+                if (propertyType == typeof(Dictionary<string, int>))
+                {
+                    var keyrx = @"([a-zA-Z]+)";
+                    var valuerx = @"(-?\d+)";
+                    actions[groupName] = g =>
                     {
-                        result.Add(match.Groups["key"].Value, Convert.ToInt32(match.Groups["value"].Value));
-                        g = g.Substring(match.Length);
-                        match = Regex.Match(g, $@"^,\s*{group}");
-                    }
-                    property.SetValue(parent, result);
-                };
-                var group = $@"{keyrx}:\s*{valuerx}\s*";
-                return $@"(?<{groupName}>({group})(,\s*{group})*)";
-            }
-
-            if (propertyType == typeof(List<string>))
-            {
-                var repeat = property.GetCustomAttribute<RxRepeat>() ?? new RxRepeat();
-
-                var separator = repeat.Separator;
-
-                actions[groupName] = g =>
-                {
-                    var result = g.Split(separator, StringSplitOptions.RemoveEmptyEntries).ToList();
-                    property.SetValue(parent, result);
-                };
-
-                if (repeat.Min == 0 && repeat.Max == int.MaxValue)
-                {
-                    return $@"(?<{groupName}>\w+({separator}\w+)*)?";
-                }
-                if (repeat.Min == 1 && repeat.Max == int.MaxValue)
-                {
-                    return $@"(?<{groupName}>\w+({separator}\w+)*)";
-                }
-
-                if (repeat.Min == 0)
-                {
-                    return $@"(?<{groupName}>\w+({separator}\w+){{,{repeat.Max}}})?";
-                }
-                return $@"(?<{groupName}>\w+({separator}\w+){{{repeat.Min - 1},{repeat.Max}}})";
-            }
-
-            if (propertyType.IsEnum)
-            {
-                var mi = typeof(StructuredRx).GetMethod("GetEnumMap", BindingFlags.NonPublic | BindingFlags.Static);
-                var fooRef = mi!.MakeGenericMethod(propertyType);
-                var map = (Dictionary<string, int>)fooRef.Invoke(null, null)!;
-
-                var alternation = map.Keys.Select(it => $"({it})").Join("|");
-
-                actions[groupName] = (g) => property.SetValue(parent, string.IsNullOrWhiteSpace(g) ? 0 : map[g.ToLower()]);
-                return $"(?<{groupName}>{alternation})";
-            }
-            if (propertyType.IsClass)
-            {
-                var (pattern, instance) = GetRegexForClass(propertyType, groupName, actions);
-                foreach (var key in actions.Keys.Where(it => it.StartsWith(groupName)))
-                {
-                    var old = actions[key];
-                    actions[key] = g =>
-                    {
-                        // TODO: this fixes my problem right now, but also implies that you
-                        // can never instantiate a type with an empty match somewhere.
-                        if (!string.IsNullOrWhiteSpace(g))
+                        var result = new Dictionary<string, int>();
+                        var group = $@"(?<key>{keyrx}):\s*(?<value>{valuerx})\s*";
+                        var match = Regex.Match(g, $@"^{@group}");
+                        while (match.Success)
                         {
-                            property.SetValue(parent, instance);
+                            result.Add(match.Groups["key"].Value, Convert.ToInt32(match.Groups["value"].Value));
+                            g = g.Substring(match.Length);
+                            match = Regex.Match(g, $@"^,\s*{@group}");
                         }
-                        
-                        old(g);
+                        property.SetValue(parent, result);
                     };
+                    var group = $@"{keyrx}:\s*{valuerx}\s*";
+                    return $@"(?<{groupName}>({@group})(,\s*{@group})*)";
                 }
 
-                return pattern;
+                if (propertyType == typeof(List<string>))
+                {
+                    var repeat = property.GetCustomAttribute<RxRepeat>() ?? new RxRepeat();
+
+                    var separator = repeat.Separator;
+
+                    actions[groupName] = g =>
+                    {
+                        var result = g.Split(separator, StringSplitOptions.RemoveEmptyEntries).ToList();
+                        property.SetValue(parent, result);
+                    };
+
+                    if (repeat.Min == 0 && repeat.Max == int.MaxValue)
+                    {
+                        return $@"(?<{groupName}>\w+({separator}\w+)*)?";
+                    }
+                    if (repeat.Min == 1 && repeat.Max == int.MaxValue)
+                    {
+                        return $@"(?<{groupName}>\w+({separator}\w+)*)";
+                    }
+
+                    if (repeat.Min == 0)
+                    {
+                        return $@"(?<{groupName}>\w+({separator}\w+){{,{repeat.Max}}})?";
+                    }
+                    return $@"(?<{groupName}>\w+({separator}\w+){{{repeat.Min - 1},{repeat.Max}}})";
+                }
+
+                if (propertyType.IsEnum)
+                {
+                    var mi = typeof(StructuredRx).GetMethod("GetEnumMap", BindingFlags.NonPublic | BindingFlags.Static);
+                    var fooRef = mi!.MakeGenericMethod(propertyType);
+                    var map = (Dictionary<string, int>)fooRef.Invoke(null, null)!;
+
+                    var alternation = map.Keys.Select(it => $"({it})").Join("|");
+
+                    actions[groupName] = (g) => property.SetValue(parent, string.IsNullOrWhiteSpace(g) ? 0 : map[g.ToLower()]);
+                    return $"(?<{groupName}>{alternation})";
+                }
+                if (propertyType.IsClass)
+                {
+                    var (pattern, instance) = GetRegexForClass(propertyType, groupName, actions);
+                    foreach (var key in actions.Keys.Where(it => it.StartsWith(groupName)))
+                    {
+                        var old = actions[key];
+                        actions[key] = g =>
+                        {
+                            // TODO: this fixes my problem right now, but also implies that you
+                            // can never instantiate a type with an empty match somewhere.
+                            if (!string.IsNullOrWhiteSpace(g))
+                            {
+                                property.SetValue(parent, instance);
+                            }
+                        
+                            old(g);
+                        };
+                    }
+
+                    return pattern;
+                }
             }
 
             throw new ApplicationException();
@@ -152,10 +164,11 @@ namespace AdventOfCode2016.Utils
 
             foreach (var subProperty in properties)
             {
+                if (subProperty.GetCustomAttribute<RxIgnore>() != null) continue;
                 var rxFormat = subProperty.GetCustomAttribute<RxFormat>() ?? new RxFormat();
                 var rxAlternate = subProperty.GetCustomAttribute<RxAlternate>();
 
-                if (rxAlternate == null && alternations.Any())
+                if ((rxAlternate?.Restart == true || rxAlternate == null) && alternations.Any())
                 {
                     pattern += $"({alternations.Select(a => $"({a})").Join("|")})";
                     alternations.Clear();

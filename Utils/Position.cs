@@ -57,5 +57,10 @@ namespace AdventOfCode2016.Utils
         public Position South => this + Vector.South;
         public Position East => this + Vector.East;
         public Position West => this + Vector.West;
+
+        public override string ToString()
+        {
+            return $"{Y},{X}";
+        }
     }
 }

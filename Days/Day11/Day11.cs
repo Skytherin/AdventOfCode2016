@@ -22,7 +22,7 @@ namespace AdventOfCode2016.Days.Day11
 
         private long Do1(Day11Data initial)
         {
-            return SearchAlgorithm.AStarSearch(initial, Goal(initial), Neighbors, PriorityFunction).Cost;
+            return SearchAlgorithm.AStarSearch(initial, Goal(initial), Neighbors, PriorityFunction).Steps;
         }
 
         private long PriorityFunction(Day11Data input)

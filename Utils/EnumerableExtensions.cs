@@ -19,6 +19,14 @@ namespace AdventOfCode2016.Utils
             foreach (var item in list.Take(list.Count - magnitude)) yield return item;
         }
 
+        public static IEnumerable<T> RotateLeft<T>(this IEnumerable<T> self, int magnitude)
+        {
+            var list = self.ToList();
+            magnitude = magnitude % list.Count;
+            foreach (var item in list.Skip(magnitude)) yield return item;
+            foreach (var item in list.Take(magnitude)) yield return item;
+        }
+
         public static IReadOnlyList<T> ToReadOnlyList<T>(this IEnumerable<T> self) => self.ToList();
 
         public static IEnumerable<T> AppendAll<T>(this IEnumerable<T> self, IEnumerable<T> other)

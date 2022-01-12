@@ -13,6 +13,12 @@ namespace AdventOfCode2016.Utils
     [AttributeUsage(AttributeTargets.Property)]
     public class RxAlternate : Attribute
     {
+        public bool Restart { get; set; }
+    }
+
+    [AttributeUsage(AttributeTargets.Property)]
+    public class RxIgnore : Attribute
+    {
     }
 
     [AttributeUsage(AttributeTargets.Property)]

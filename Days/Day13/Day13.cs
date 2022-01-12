@@ -42,7 +42,7 @@ namespace AdventOfCode2016.Days.Day13
             var target = new Position(targetY, targetX);
 
             return SearchAlgorithm.AStarSearch(new Position(1, 1), new Position(targetY, targetX), p => Neighbors(p, n),
-                p => p.ManhattanDistance(target)).Cost;
+                p => p.ManhattanDistance(target)).Steps;
         }
 
         private long Fn(Position p, long value) => p.X * p.X + 3 * p.X + 2 * p.X * p.Y + p.Y + p.Y * p.Y + value;

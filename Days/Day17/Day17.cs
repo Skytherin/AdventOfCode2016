@@ -38,7 +38,7 @@ namespace AdventOfCode2016.Days.Day17
                 node => node.Position.Equals(new Position(3, 3)),
                 node => Neighbors(node, seed), node => node.Position.ManhattanDistance(new Position(3, 3)));
 
-            return result.Max(it => it.Cost);
+            return result.Max(it => it.Steps);
         }
 
         private IEnumerable<(long Cost, Day17Node Node)> Neighbors(Day17Node node, string seed)
